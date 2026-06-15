@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PFG Loan Presenter</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { font-family: Arial, sans-serif; background: #f0f4f8; color: #222; }
+
+    /* ── FORM PAGE ── */
+    #form-page { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
+
+    .form-logo { text-align: center; margin-bottom: 24px; }
+    .form-logo h1 { color: #1a4b8c; font-size: 22px; }
+    .form-logo p  { color: #555; font-size: 13px; }
+
+    .section { background: white; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .section h2 { font-size: 14px; font-weight: 700; color: #1a4b8c; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+
+    .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+    .field { flex: 1; min-width: 160px; }
+    .field label { display: block; font-size: 11px; font-weight: 600; color: #555; margin-bottom: 4px; text-transform: uppercase; }
+    .field input, .field select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 13px; }
+    .field input:focus, .field select:focus { outline: none; border-color: #1a4b8c; }
+
+    .option-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+    .tab-btn { padding: 6px 16px; border: 2px solid #cbd5e0; border-radius: 20px; background: white; font-size: 12px; font-weight: 600; cursor: pointer; color: #555; }
+    .tab-btn.active { border-color: #1a4b8c; background: #1a4b8c; color: white; }
+
+    .option-section { display: none; }
+    .option-section.active { display: block; }
+
+    .generate-btn { display: block; width: 100%; padding: 14px; background: #2d6a4f; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .generate-btn:hover { background: #1b4332; }
+
+    /* ── PRESENTATION PAGE ── */
+    #presentation-page { display: none; }
+
+    @media print {
+      #form-page { display: none !important; }
+      #presentation-page { display: block !important; }
+      .no-print { display: none !important; }
+      body { background: white; }
+    }
+
+    .pres-wrap { max-width: 900px; margin: 0 auto; background: white; }
+
+    /* header */
+    .pres-header { display: flex; align-items: center; padding: 20px 28px; border-bottom: 3px solid #1a4b8c; }
+    .pres-header img.logo { height: 70px; margin-right: 20px; }
+    .pres-header .advisor { margin-left: auto; text-align: right; font-size: 12px; color: #333; line-height: 1.6; }
+    .pres-header .advisor strong { display: block; font-size: 14px; color: #1a4b8c; }
+
+    /* title bar */
+    .pres-title { background: #2d3748; color: white; text-align: center; padding: 12px; font-size: 18px; font-weight: 700; letter-spacing: .5px; }
+    .pres-subtitle { background: #4a5568; color: #e2e8f0; text-align: center; padding: 6px; font-size: 12px; }
+
+    /* current situation */
+    .current-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #e2e8f0; margin: 20px 28px 0; border-radius: 8px; overflow: hidden; }
+    .current-grid .col { padding: 14px 18px; }
+    .current-grid .col:first-child { border-right: 1px solid #e2e8f0; }
+    .current-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid #f7fafc; }
+    .current-row:last-child { border-bottom: none; }
+    .current-row span:first-child { color: #555; }
+    .current-row span:last-child { font-weight: 600; }
+
+    .section-header { background: #1a4b8c; color: white; text-align: center; padding: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 20px 28px 0; border-radius: 6px 6px 0 0; }
+
+    /* options table */
+    .options-table { margin: 0 28px 28px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; overflow: hidden; width: calc(100% - 56px); border-collapse: collapse; }
+    .options-table th { background: #2d6a4f; color: white; padding: 10px 14px; font-size: 13px; text-align: center; }
+    .options-table th:first-child { background: #2d3748; text-align: left; width: 220px; }
+    .options-table td { padding: 8px 14px; font-size: 13px; border-bottom: 1px solid #f0f4f8; text-align: center; }
+    .options-table td:first-child { text-align: left; color: #555; font-weight: 500; background: #f8fafc; }
+    .options-table tr:last-child td { border-bottom: none; }
+    .options-table tr.highlight td { background: #f0fff4; font-weight: 700; color: #2d6a4f; }
+    .options-table tr.highlight td:first-child { background: #e6fffa; }
+    .options-table tr:nth-child(even) td:not(:first-child) { background: #fafbfc; }
+
+    /* savings bar */
+    .savings-bar { display: flex; gap: 12px; margin: 0 28px 20px; flex-wrap: wrap; }
+    .savings-card { flex: 1; background: #f0fff4; border: 2px solid #2d6a4f; border-radius: 8px; padding: 14px; text-align: center; min-width: 140px; }
+    .savings-card .label { font-size: 11px; color: #555; text-transform: uppercase; font-weight: 600; }
+    .savings-card .value { font-size: 22px; font-weight: 800; color: #2d6a4f; margin-top: 4px; }
+
+    /* footer */
+    .pres-footer { background: #2d3748; color: #a0aec0; text-align: center; padding: 12px; font-size: 11px; margin: 0 28px 28px; border-radius: 0 0 8px 8px; }
+
+    .back-btn { display: block; width: fit-content; margin: 16px auto; padding: 10px 28px; background: #1a4b8c; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .print-btn { display: block; width: fit-content; margin: 0 auto 24px; padding: 10px 28px; background: #2d6a4f; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ FORM PAGE ═══════════════ -->
+<div id="form-page">
+  <div class="form-logo">
+    <h1>Pacific Financial Inc.</h1>
+    <p>Loan Presenter Generator — fill in the details below, then click Generate</p>
+  </div>
+
+  <!-- Borrower Info -->
+  <div class="section">
+    <h2>Borrower Information</h2>
+    <div class="row">
+      <div class="field"><label>Borrower Name</label><input id="borrower" type="text" placeholder="e.g. John & Jane Smith" /></div>
+      <div class="field"><label>Loan Type</label>
+        <select id="loan-type">
+          <option value="Refinance">Refinance</option>
+          <option value="Purchase">Purchase</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Borrower Email</label><input id="borrower-email" type="email" placeholder="borrower@email.com" /></div>
+      <div class="field"><label>Borrower Phone</label><input id="borrower-phone" type="tel" placeholder="(949) 555-1234" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Est. Property Value ($)</label><input id="prop-value" type="number" placeholder="480000" /></div>
+      <div class="field"><label>Current Mortgage Payoff ($)</label><input id="payoff" type="number" placeholder="260000" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Current P&I Payment ($)</label><input id="curr-pi" type="number" placeholder="0" /></div>
+      <div class="field"><label>Current MI Payment ($)</label><input id="curr-mi" type="number" placeholder="0" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Monthly Property Tax ($)</label><input id="curr-tax" type="number" placeholder="516" /></div>
+      <div class="field"><label>Monthly Insurance ($)</label><input id="curr-ins" type="number" placeholder="47.85" /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Debts to Refinance ($)</label><input id="debts" type="number" placeholder="0" /></div>
+      <div class="field"><label>Debt Monthly Payments ($)</label><input id="debt-payments" type="number" placeholder="0" /></div>
+    </div>
+  </div>
+
+  <!-- Loan Options -->
+  <div class="section">
+    <h2>Loan Options</h2>
+    <div class="option-tabs">
+      <button class="tab-btn active" onclick="showOption(1)">Option 1</button>
+      <button class="tab-btn" onclick="showOption(2)">Option 2</button>
+      <button class="tab-btn" onclick="showOption(3)">Option 3 (optional)</button>
+    </div>
+
+    <!-- Option 1 -->
+    <div class="option-section active" id="opt1">
+      <div class="row">
+        <div class="field"><label>Program Name</label><select id="o1-program"><option value="">Select</option><option value="15-Year Fixed" selected>15-Year Fixed</option><option value="30-Year Fixed">30-Year Fixed</option><option value="10-Year Fixed">10-Year Fixed</option><option value="10/1 ARM">10/1 ARM</option><option value="7/1 ARM">7/1 ARM</option><option value="5/1 ARM">5/1 ARM</option><option value="3/1 ARM">3/1 ARM</option><option value="FHA 30-Year Fixed">FHA 30-Year Fixed</option><option value="FHA 15-Year Fixed">FHA 15-Year Fixed</option><option value="VA 30-Year Fixed">VA 30-Year Fixed</option><option value="VA 15-Year Fixed">VA 15-Year Fixed</option><option value="HELOC">HELOC</option></select></div>
+        <div class="field"><label>Loan Amount ($)</label><input id="o1-amount" type="number" placeholder="260000" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Interest Rate (%)</label><input id="o1-rate" type="number" step="0.001" placeholder="2.250" /></div>
+        <div class="field"><label>Other Lender Fees ($) <span style="font-weight:400;color:#888">(for APR)</span></label><input id="o1-fees" type="number" placeholder="0" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Term (Years)</label><select id="o1-term"><option value="">Select</option><option value="10">10 Years</option><option value="15" selected>15 Years</option><option value="20">20 Years</option><option value="25">25 Years</option><option value="30">30 Years</option></select></div>
+        <div class="field"><label>Points (%)</label><input id="o1-points" type="number" step="0.125" placeholder="0.000" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Monthly MI ($)</label><input id="o1-mi" type="number" placeholder="0" /></div>
+        <div class="field"><label>Lender Credit ($)</label><input id="o1-credit" type="number" placeholder="0" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Est. Closing Costs ($)</label><input id="o1-costs" type="number" placeholder="3795" /></div>
+        <div class="field"><label>Cash Out ($)</label><input id="o1-cashout" type="number" placeholder="0" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Escrow Account Est. ($)</label><input id="o1-escrow" type="number" placeholder="0" /></div>
+      </div>
+    </div>
+
+    <!-- Option 2 -->
+    <div class="option-section" id="opt2">
+      <div class="row">
+        <div class="field"><label>Program Name</label><select id="o2-program"><option value="">Select</option><option value="15-Year Fixed" selected>15-Year Fixed</option><option value="30-Year Fixed">30-Year Fixed</option><option value="10-Year Fixed">10-Year Fixed</option><option value="10/1 ARM">10/1 ARM</option><option value="7/1 ARM">7/1 ARM</option><option value="5/1 ARM">5/1 ARM</option><option value="3/1 ARM">3/1 ARM</option><option value="FHA 30-Year Fixed">FHA 30-Year Fixed</option><option value="FHA 15-Year Fixed">FHA 15-Year Fixed</option><option value="VA 30-Year Fixed">VA 30-Year Fixed</option><option value="VA 15-Year Fixed">VA 15-Year Fixed</option><option value="HELOC">HELOC</option></select></div>
+        <div class="field"><label>Loan Amount ($)</label><input id="o2-amount" type="number" placeholder="260000" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Interest Rate (%)</label><input id="o2-rate" type="number" step="0.001" placeholder="2.375" /></div>
+        <div class="field"><label>Other Lender Fees ($) <span style="font-weight:400;color:#888">(for APR)</span></label><input id="o2-fees" type="number" placeholder="0" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Term (Years)</label><select id="o2-term"><option value="">Select</option><option value="10">10 Years</option><option value="15" selected>15 Years</option><option value="20">20 Years</option><option value="25">25 Years</option><option value="30">30 Years</option></select></div>
+        <div class="field"><label>Points (%)</label><input id="o2-points" type="number" step="0.125" placeholder="0.000" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Monthly MI ($)</label><input id="o2-mi" type="number" placeholder="0" /></div>
+        <div class="field"><label>Lender Credit ($)</label><input id="o2-credit" type="number" placeholder="919" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Est. Closing Costs ($)</label><input id="o2-costs" type="number" placeholder="3795" /></div>
+        <div class="field"><label>Cash Out ($)</label><input id="o2-cashout" type="number" placeholder="0" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Escrow Account Est. ($)</label><input id="o2-escrow" type="number" placeholder="0" /></div>
+      </div>
+    </div>
+
+    <!-- Option 3 -->
+    <div class="option-section" id="opt3">
+      <div class="row">
+        <div class="field"><label>Program Name</label><select id="o3-program"><option value="">Select</option><option value="15-Year Fixed">15-Year Fixed</option><option value="10-Year Fixed">10-Year Fixed</option><option value="10/1 ARM">10/1 ARM</option><option value="7/1 ARM">7/1 ARM</option><option value="5/1 ARM">5/1 ARM</option><option value="3/1 ARM">3/1 ARM</option><option value="FHA 30-Year Fixed">FHA 30-Year Fixed</option><option value="FHA 15-Year Fixed">FHA 15-Year Fixed</option><option value="VA 30-Year Fixed">VA 30-Year Fixed</option><option value="VA 15-Year Fixed">VA 15-Year Fixed</option><option value="HELOC">HELOC</option></select></div>
+        <div class="field"><label>Loan Amount ($)</label><input id="o3-amount" type="number" placeholder="" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Interest Rate (%)</label><input id="o3-rate" type="number" step="0.001" placeholder="" /></div>
+        <div class="field"><label>Other Lender Fees ($) <span style="font-weight:400;color:#888">(for APR)</span></label><input id="o3-fees" type="number" placeholder="0" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Term (Years)</label><select id="o3-term"><option value="">Select</option><option value="10">10 Years</option><option value="15">15 Years</option><option value="20">20 Years</option><option value="25">25 Years</option><option value="30">30 Years</option></select></div>
+        <div class="field"><label>Points (%)</label><input id="o3-points" type="number" step="0.125" placeholder="0.000" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Monthly MI ($)</label><input id="o3-mi" type="number" placeholder="0" /></div>
+        <div class="field"><label>Lender Credit ($)</label><input id="o3-credit" type="number" placeholder="0" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Est. Closing Costs ($)</label><input id="o3-costs" type="number" placeholder="" /></div>
+        <div class="field"><label>Cash Out ($)</label><input id="o3-cashout" type="number" placeholder="0" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Escrow Account Est. ($)</label><input id="o3-escrow" type="number" placeholder="0" /></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="generate-btn" onclick="generate()">Generate Presentation</button>
+</div>
+
+<!-- ═══════════════ PRESENTATION PAGE ═══════════════ -->
+<div id="presentation-page">
+  <div class="no-print" style="background:#1a4b8c;padding:12px;text-align:center;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <button class="back-btn" style="margin:0" onclick="goBack()">← Edit</button>
+    <button class="print-btn" style="margin:0" onclick="window.print()">Print / Save PDF</button>
+    <button class="print-btn" style="margin:0;background:#1a4b8c;border:2px solid white;" onclick="emailBorrower()">Email to Borrower</button>
+  </div>
+
+  <div class="pres-wrap">
+    <!-- Header -->
+    <div class="pres-header" style="align-items:flex-start;">
+      <div style="display:flex;align-items:center;gap:16px;"><img src="pfi_Raul Lopez_3.jpg" style="height:90px;width:70px;object-fit:cover;border-radius:6px;border:2px solid #e2e8f0;" alt="Raul Lopez" />
+        <img src="https://www.pacificfinancialinc.com/wp-content/uploads/2020/01/PFG-Logo.png"
+             onerror="this.style.display='none'"
+             style="height:60px;" alt="Pacific Financial Inc." />
+        <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/4RDgRXhpZgAATU0AKgAAAAgABAE7AAIAAAAHAAAISodpAAQAAAABAAAIUpydAAEAAAAOAAAQyuocAAcAAAgMAAAAPgAAAAAc6gAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEhlY3RvcgAAAAWQAwACAAAAFAAAEKCQBAACAAAAFAAAELSSkQACAAAAAzAyAACSkgACAAAAAzAyAADqHAAHAAAIDAAACJQAAAAAHOoAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAyMDE1OjAxOjE0IDE4OjQ2OjQ5ADIwMTU6MDE6MTQgMTg6NDY6NDkAAABIAGUAYwB0AG8AcgAAAP/hCxlodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvADw/eHBhY2tldCBiZWdpbj0n77u/JyBpZD0nVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkJz8+DQo8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIj48cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPjxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSJ1dWlkOmZhZjViZGQ1LWJhM2QtMTFkYS1hZDMxLWQzM2Q3NTE4MmYxYiIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIi8+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iPjx4bXA6Q3JlYXRlRGF0ZT4yMDE1LTAxLTE0VDE4OjQ2OjQ5LjAyMjwveG1wOkNyZWF0ZURhdGU+PC9yZGY6RGVzY3JpcHRpb24+PHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9InV1aWQ6ZmFmNWJkZDUtYmEzZC0xMWRhLWFkMzEtZDMzZDc1MTgyZjFiIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iPjxkYzpjcmVhdG9yPjxyZGY6U2VxIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+PHJkZjpsaT5IZWN0b3I8L3JkZjpsaT48L3JkZjpTZXE+DQoJCQk8L2RjOmNyZWF0b3I+PC9yZGY6RGVzY3JpcHRpb24+PC9yZGY6UkRGPjwveDp4bXBtZXRhPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8P3hwYWNrZXQgZW5kPSd3Jz8+/9sAQwAHBQUGBQQHBgUGCAcHCAoRCwoJCQoVDxAMERgVGhkYFRgXGx4nIRsdJR0XGCIuIiUoKSssKxogLzMvKjInKisq/9sAQwEHCAgKCQoUCwsUKhwYHCoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq/8AAEQgApwJoAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/aAAwDAQACEQMRAD8A+kKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAoopksqQQtJIwVVGSTQBi+Iddt9NaGzmXebr5WAJG1DwT0rxTxpp954X15pbNwbS7zPC5UHCszYHJz0Fd1c6tHcz3ep3R/1ylIlPZCMEfpT7TSG8Z+C7qznjP7h2+yOeNpCgKPpg0sBjuSvyy+FnFKXtHb7jyq2+JGsW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" style="height:70px;" alt="Pacific Financial Inc." />
+      </div>
+      <div class="advisor">
+        <strong>Raul McCulley Lopez</strong>
+        Sr. Mortgage Advisor<br>
+        (t) 949-427-2587<br>
+        (f) 949-427-2587<br>
+        rlopez@pacificfinancialinc.com<br>
+        NMLS ID: 1284822
+        <br><br>
+        <span style="font-size:11px;color:#888;">Pacific Financial, Inc. · 18851 Bardeen Ave Suite 215<br>Irvine, CA 92612 · NMLS ID: 655576</span>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div class="pres-title" id="pres-title">Presentation for —</div>
+    <div class="pres-subtitle" id="pres-date"></div>
+
+    <!-- Current Situation -->
+    <div style="margin:20px 28px 0;font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;">Current Situation</div>
+    <div class="current-grid">
+      <div class="col">
+        <div class="current-row"><span>Est. Property Value</span><span id="s-propval"></span></div>
+        <div class="current-row"><span>Current Mortgage Payoff</span><span id="s-payoff"></span></div>
+        <div class="current-row"><span>Current P&I Payment</span><span id="s-pi"></span></div>
+        <div class="current-row"><span>Current MI Payment</span><span id="s-mi"></span></div>
+        <div class="current-row"><span>Current Property Tax</span><span id="s-tax"></span></div>
+        <div class="current-row"><span>Current Insurance</span><span id="s-ins"></span></div>
+      </div>
+      <div class="col">
+        <div class="current-row"><span>Debts to Refinance</span><span id="s-debts"></span></div>
+        <div class="current-row"><span>Debt Monthly Payments</span><span id="s-debtpmt"></span></div>
+        <div class="current-row"><span>Mortgage + Debts to Refi</span><span id="s-totalrefi"></span></div>
+        <div class="current-row"><span>Total Existing Payments</span><span id="s-totalpmt"></span></div>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div class="section-header">Your Loan Options</div>
+    <table class="options-table" id="options-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th id="th1">Option #1</th>
+          <th id="th2">Option #2</th>
+          <th id="th3" style="display:none">Option #3</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Mortgage Program</td><td id="r-prog1"></td><td id="r-prog2"></td><td id="r-prog3" style="display:none"></td></tr>
+        <tr><td>Loan Amount</td><td id="r-amt1"></td><td id="r-amt2"></td><td id="r-amt3" style="display:none"></td></tr>
+        <tr><td>Loan to Value (LTV)</td><td id="r-ltv1"></td><td id="r-ltv2"></td><td id="r-ltv3" style="display:none"></td></tr>
+        <tr><td>Interest Rate</td><td id="r-rate1"></td><td id="r-rate2"></td><td id="r-rate3" style="display:none"></td></tr>
+        <tr><td>APR</td><td id="r-apr1"></td><td id="r-apr2"></td><td id="r-apr3" style="display:none"></td></tr>
+        <tr><td>Term</td><td id="r-term1"></td><td id="r-term2"></td><td id="r-term3" style="display:none"></td></tr>
+        <tr><td>Points</td><td id="r-points1"></td><td id="r-points2"></td><td id="r-points3" style="display:none"></td></tr>
+        <tr><td>Monthly MI</td><td id="r-mi1"></td><td id="r-mi2"></td><td id="r-mi3" style="display:none"></td></tr>
+        <tr><td>Monthly Taxes</td><td id="r-tax1"></td><td id="r-tax2"></td><td id="r-tax3" style="display:none"></td></tr>
+        <tr><td>Monthly Insurance</td><td id="r-ins1"></td><td id="r-ins2"></td><td id="r-ins3" style="display:none"></td></tr>
+        <tr><td>Lender Credit</td><td id="r-credit1"></td><td id="r-credit2"></td><td id="r-credit3" style="display:none"></td></tr>
+        <tr><td>Est. Costs Before Credit</td><td id="r-costs1"></td><td id="r-costs2"></td><td id="r-costs3" style="display:none"></td></tr>
+        <tr><td>Closing Costs After Credit</td><td id="r-net1"></td><td id="r-net2"></td><td id="r-net3" style="display:none"></td></tr>
+        <tr><td>Cash Out</td><td id="r-cashout1"></td><td id="r-cashout2"></td><td id="r-cashout3" style="display:none"></td></tr>
+        <tr><td>Funds Needed to Close</td><td id="r-funds1"></td><td id="r-funds2"></td><td id="r-funds3" style="display:none"></td></tr>
+        <tr class="highlight"><td>P&I Payment</td><td id="r-pi1"></td><td id="r-pi2"></td><td id="r-pi3" style="display:none"></td></tr>
+        <tr class="highlight"><td>Total Monthly Payment</td><td id="r-total1"></td><td id="r-total2"></td><td id="r-total3" style="display:none"></td></tr>
+        <tr class="highlight"><td>Monthly Savings</td><td id="r-savings1"></td><td id="r-savings2"></td><td id="r-savings3" style="display:none"></td></tr>
+        <tr><td>Months to Recoup Costs</td><td id="r-recoup1"></td><td id="r-recoup2"></td><td id="r-recoup3" style="display:none"></td></tr>
+      </tbody>
+    </table>
+
+    <div class="pres-footer">
+      This presentation is for informational purposes only and does not constitute a loan commitment or guarantee of any specific loan terms.
+      Rates and fees are subject to change. Contact Raul McCulley Lopez NMLS #1284822 for complete details.
+    </div>
+  </div>
+</div>
+
+<script>
+  function showOption(n) {
+    document.querySelectorAll('.option-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('opt' + n).classList.add('active');
+    document.querySelectorAll('.tab-btn')[n-1].classList.add('active');
+  }
+
+  function fmt(v) {
+    if (v === null || v === undefined || v === '' || isNaN(v)) return '—';
+    return '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtPct(v) {
+    if (!v) return '—';
+    return Number(v).toFixed(3) + '%';
+  }
+  function calcPI(amount, annualRate, termYears) {
+    if (!amount || !annualRate || !termYears) return 0;
+    const r = annualRate / 100 / 12;
+    const n = termYears * 12;
+    if (r === 0) return amount / n;
+    return amount * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+  }
+
+  // APR = rate where PV of monthly payments = loan amount minus upfront financed fees
+  function calcAPR(loanAmount, annualRate, termYears, points, otherFees) {
+    if (!loanAmount || !annualRate || !termYears) return 0;
+    const pmt = calcPI(loanAmount, annualRate, termYears);
+    const n   = termYears * 12;
+    const financedAmt = loanAmount - (points || 0) - (otherFees || 0);
+    if (financedAmt <= 0) return annualRate;
+    // Bisection: find monthly rate r where sum(pmt/(1+r)^t, t=1..n) = financedAmt
+    let lo = 0.0000001, hi = 1.0;
+    for (let i = 0; i < 100; i++) {
+      const mid = (lo + hi) / 2;
+      let pv = 0;
+      for (let t = 1; t <= n; t++) pv += pmt / Math.pow(1 + mid, t);
+      if (pv > financedAmt) lo = mid; else hi = mid;
+    }
+    return ((lo + hi) / 2) * 12 * 100; // annual %
+  }
+
+  function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
+  function gs(id) { return document.getElementById(id).value.trim(); }
+
+  function generate() {
+    const borrower = gs('borrower') || 'Valued Borrower';
+    const loanType = gs('loan-type');
+    const propVal  = g('prop-value');
+    const payoff   = g('payoff');
+    const currPi   = g('curr-pi');
+    const currMi   = g('curr-mi');
+    const currTax  = g('curr-tax');
+    const currIns  = g('curr-ins');
+    const debts    = g('debts');
+    const debtPmt  = g('debt-payments');
+
+    const currTotal = currPi + currMi + currTax + currIns + debtPmt;
+    const totalRefi = payoff + debts;
+
+    document.getElementById('pres-title').textContent = `Presentation for ${borrower}`;
+    document.getElementById('pres-date').textContent  = `${loanType} · Prepared: ${new Date().toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'})}`;
+
+    document.getElementById('s-propval').textContent  = fmt(propVal);
+    document.getElementById('s-payoff').textContent   = fmt(payoff);
+    document.getElementById('s-pi').textContent       = fmt(currPi);
+    document.getElementById('s-mi').textContent       = fmt(currMi);
+    document.getElementById('s-tax').textContent      = fmt(currTax);
+    document.getElementById('s-ins').textContent      = fmt(currIns);
+    document.getElementById('s-debts').textContent    = fmt(debts);
+    document.getElementById('s-debtpmt').textContent  = fmt(debtPmt);
+    document.getElementById('s-totalrefi').textContent= fmt(totalRefi);
+    document.getElementById('s-totalpmt').textContent = fmt(currTotal);
+
+    const opts = [
+      { prefix:'o1', num:1 },
+      { prefix:'o2', num:2 },
+      { prefix:'o3', num:3 },
+    ];
+
+    const hasOpt3 = gs('o3-program') !== '';
+
+    opts.forEach(({prefix, num}) => {
+      const show = num < 3 || hasOpt3;
+      const suffix = num;
+      const program = gs(`${prefix}-program`);
+      const amount  = g(`${prefix}-amount`);
+      const rate    = g(`${prefix}-rate`);
+      const term    = g(`${prefix}-term`);
+      const pointsPct = g(`${prefix}-points`);
+      const points    = pointsPct * amount / 100;  // convert % to dollars
+      const fees    = g(`${prefix}-fees`);
+      const mi      = g(`${prefix}-mi`);
+      const credit  = g(`${prefix}-credit`);
+      const costs   = g(`${prefix}-costs`);
+      // APR includes all lender fees: points + other fees + closing costs (net of lender credit)
+      const totalFeesForAPR = points + fees + Math.max(0, costs - credit);
+      const apr     = calcAPR(amount, rate, term, totalFeesForAPR, 0);
+      const cashout = g(`${prefix}-cashout`);
+      const escrow  = g(`${prefix}-escrow`);
+
+      const pi        = calcPI(amount, rate, term);
+      const ltv       = propVal ? (amount / propVal * 100).toFixed(2) + '%' : '—';
+      const shortage  = costs - credit;
+      const netCosts  = Math.max(0, shortage);
+      const totalMo   = pi + mi + currTax + currIns;
+      const savings   = currTotal - totalMo;
+      const rawFunds  = payoff + netCosts + escrow - amount;
+      const funds     = Math.max(0, rawFunds);
+      const recoup    = savings > 0 ? Math.ceil(netCosts / savings) + ' months' : '—';
+
+      const netLabel   = shortage > 0
+        ? `<span style="color:#c0392b;font-weight:700">${fmt(shortage)} Shortage</span>`
+        : `<span style="color:#2d6a4f;font-weight:700">Covered by Credit</span>`;
+      const fundsLabel = rawFunds > 0
+        ? `<span style="color:#c0392b;font-weight:700">${fmt(rawFunds)} Cash to Close</span>`
+        : `<span style="color:#2d6a4f;font-weight:700">Loan Covers All Costs</span>`;
+
+      const cells = ['prog','amt','ltv','rate','apr','term','points','mi','tax','ins','credit','costs','net','cashout','funds','pi','total','savings','recoup'];
+      const vals  = [
+        program, fmt(amount), ltv, fmtPct(rate), apr ? apr.toFixed(3) + '%' : '—',
+        term ? term + ' Years' : '—',
+        fmt(points), fmt(mi), fmt(currTax), fmt(currIns),
+        fmt(credit), fmt(costs), netLabel, fmt(cashout),
+        fundsLabel, fmt(pi), fmt(totalMo),
+        savings !== 0 ? fmt(savings) : '—', recoup
+      ];
+
+      cells.forEach((c, i) => {
+        const el = document.getElementById(`r-${c}${suffix}`);
+        if (el) { el.innerHTML = vals[i]; el.style.display = show ? '' : 'none'; }
+      });
+
+      const th = document.getElementById(`th${suffix}`);
+      if (th) { th.textContent = `Option #${suffix}`; th.style.display = show ? '' : 'none'; }
+    });
+
+    document.getElementById('form-page').style.display = 'none';
+    document.getElementById('presentation-page').style.display = 'block';
+    window.scrollTo(0,0);
+
+    // Success toast
+    const toast = document.createElement('div');
+    toast.textContent = '✓ Presentation generated for ' + (document.getElementById('borrower').value.trim() || 'Borrower');
+    toast.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#2d6a4f;color:white;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2);';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+  }
+
+  function goBack() {
+    document.getElementById('presentation-page').style.display = 'none';
+    document.getElementById('form-page').style.display = 'block';
+  }
+
+  function emailBorrower() {
+    const borrower = document.getElementById('borrower').value.trim() || 'there';
+    const email    = document.getElementById('borrower-email').value.trim();
+    if (!email) { alert('Please go back and enter the borrower\'s email address.'); return; }
+
+    const subject = encodeURIComponent('Your Personalized Loan Options – Pacific Financial Inc.');
+    const body    = encodeURIComponent(
+`Hi ${borrower},
+
+Thank you for the opportunity to work with you! I have put together your personalized loan options and attached them to this email for your review.
+
+Please take a look at the options I have outlined for you. I am happy to answer any questions or walk you through the numbers at your convenience.
+
+Feel free to call or text me anytime:
+📞 (949) 427-2587
+
+Looking forward to helping you achieve your goals!
+
+Best regards,
+Raul McCulley Lopez
+Sr. Mortgage Advisor – Pacific Financial Inc.
+NMLS# 1284822
+rlopez@pacificfinancialinc.com
+(949) 427-2587
+
+Looking forward to connecting soon!`
+    );
+
+    const a = document.createElement('a');
+    a.href = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(email)}&su=${subject}&body=${body}`;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+</script>
+</body>
+</html>
