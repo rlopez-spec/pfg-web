@@ -477,35 +477,49 @@
     document.getElementById('form-page').style.display = 'block';
   }
 
+  function buildShareURL() {
+    const fields = [
+      'borrower','borrower-email','borrower-phone','loan-type',
+      'prop-value','payoff','curr-pi','curr-mi','curr-tax','curr-ins','debts','debt-payments',
+      'o1-program','o1-amount','o1-rate','o1-fees','o1-term','o1-points','o1-mi','o1-credit','o1-costs','o1-cashout','o1-escrow',
+      'o2-program','o2-amount','o2-rate','o2-fees','o2-term','o2-points','o2-mi','o2-credit','o2-costs','o2-cashout','o2-escrow',
+      'o3-program','o3-amount','o3-rate','o3-fees','o3-term','o3-points','o3-mi','o3-credit','o3-costs','o3-cashout','o3-escrow'
+    ];
+    const params = new URLSearchParams();
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value) params.set(id, el.value);
+    });
+    params.set('autorun', '1');
+    return 'https://rlopez-spec.github.io/pfg-web/?' + params.toString();
+  }
+
   function emailBorrower() {
     const borrower = document.getElementById('borrower').value.trim() || 'there';
     const email    = document.getElementById('borrower-email').value.trim();
     if (!email) { alert('Please go back and enter the borrower\'s email address.'); return; }
 
+    const shareURL = buildShareURL();
     const subject = encodeURIComponent('Your Personalized Loan Options – Pacific Financial Inc.');
     const body    = encodeURIComponent(
 `Hi ${borrower},
 
-Thank you for the opportunity to work with you! I have put together your personalized loan options and attached them to this email for your review.
+Thank you for the opportunity to work with you! I have put together your personalized loan options for your review.
 
-Please take a look at the options I have outlined for you. I am happy to answer any questions or walk you through the numbers at your convenience.
+Click the link below to view your loan options:
+${shareURL}
+
+I am happy to answer any questions or walk you through the numbers at your convenience.
 
 Feel free to call or text me anytime:
 📞 (949) 427-2587
-
-Looking forward to helping you achieve your goals!
 
 Best regards,
 Raul McCulley Lopez
 Sr. Mortgage Advisor – Pacific Financial Inc.
 NMLS# 1284822
 rlopez@pacificfinancialinc.com
-(949) 427-2587
-
-You can also view your loan options online here:
-https://rlopez-spec.github.io/pfg-web/
-
-Looking forward to connecting soon!`
+(949) 427-2587`
     );
 
     const a = document.createElement('a');
@@ -516,6 +530,18 @@ Looking forward to connecting soon!`
     a.click();
     document.body.removeChild(a);
   }
+
+  // Auto-fill and generate from URL params when borrower opens shared link
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('autorun') !== '1') return;
+    params.forEach((value, id) => {
+      if (id === 'autorun') return;
+      const el = document.getElementById(id);
+      if (el) el.value = value;
+    });
+    generate();
+  })();
 </script>
 </body>
 </html>
