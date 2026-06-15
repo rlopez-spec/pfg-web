@@ -438,8 +438,8 @@
         ? `<span style="color:#c0392b;font-weight:700">${fmt(shortage)} Shortage</span>`
         : `<span style="color:#2d6a4f;font-weight:700">Covered by Credit</span>`;
       const fundsLabel = rawFunds > 0
-        ? `<span style="color:#c0392b;font-weight:700">${fmt(rawFunds)} Cash to Close</span>`
-        : `<span style="color:#2d6a4f;font-weight:700">Loan Covers All Costs</span>`;
+        ? `<span style="color:#c0392b;font-weight:700">${fmt(rawFunds)}</span>`
+        : `<span style="color:#2d6a4f;font-weight:700">$0 — Loan Covers All Costs</span>`;
 
       const cells = ['prog','amt','ltv','rate','apr','term','points','mi','tax','ins','credit','costs','net','cashout','funds','pi','total','savings','recoup'];
       const vals  = [
